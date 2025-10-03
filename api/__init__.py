@@ -35,8 +35,8 @@ authorizations = {
 restx_api = Api(
     api, 
     version="1.0", 
-    title="Money Tracker API", 
-    description="Dokumentasi Money Tracker API", 
+    title="Sport Massage API", 
+    description="Dokumentasi Sport Massage API", 
     doc="/docs",
     authorizations=authorizations,
     security='Bearer Auth'
