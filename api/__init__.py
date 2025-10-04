@@ -7,6 +7,8 @@ from flask_jwt_extended import JWTManager
 from flask_restx import Api
 
 from .auth import auth_ns
+from .users import users_ns
+from .therapist import therapists_ns
 
 
 api = Flask(__name__)
@@ -43,3 +45,5 @@ restx_api = Api(
 )
 
 restx_api.add_namespace(auth_ns, path='/auth')
+restx_api.add_namespace(users_ns, path='/users')
+restx_api.add_namespace(therapists_ns, path='/therapists')
