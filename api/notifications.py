@@ -15,7 +15,7 @@ notification_model = notifications_ns.model('Notification', {
 })
 
 @notifications_ns.route('')
-class NotificationCreateResource(Resource):
+class NotificationResource(Resource):
     @jwt_required()
     @notifications_ns.expect(notification_model)
     def post(self):
@@ -35,9 +35,6 @@ class NotificationCreateResource(Resource):
             notifications_ns.logger.error(f"Database error: {str(e)}")
             return error_response("Internal server error", 500)
 
-
-@notifications_ns.route('')
-class NotificationListResource(Resource):
     @jwt_required()
     def get(self):
         """List notifikasi untuk user/terapis saat ini"""
