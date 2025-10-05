@@ -45,13 +45,15 @@ def get_bookings_by_role(role, user_id):
         with engine.connect() as connection:
             base_query = """
                 SELECT 
-                    b.id, b.user_id, u.name AS user_name,
-                    b.therapist_id, t.user_id AS therapist_user_id,
-                    b.location, b.booking_time, b.status_booking,
-                    b.notes, b.status, b.created_at, b.updated_at
+                    b.id, b.user_id, u.name AS user_name,b.therapist_id, tu.name AS therapist_name,
+                    b.location, b.booking_time, b.status_booking,b.notes, b.status, b.created_at, b.updated_at
                 FROM bookings b
-                JOIN users u ON b.user_id = u.id AND u.status = 1
-                JOIN therapist_profiles t ON b.therapist_id = t.id AND t.status = 1
+                JOIN users u 
+                    ON b.user_id = u.id AND u.status = 1
+                JOIN therapist_profiles tp 
+                    ON b.therapist_id = tp.id AND tp.status = 1
+                JOIN users tu 
+                    ON tp.user_id = tu.id AND tu.status = 1
                 WHERE b.status = 1
             """
             params = {}
@@ -64,11 +66,10 @@ def get_bookings_by_role(role, user_id):
                 params["user_id"] = user_id
             elif role == "therapist":
                 # Therapist → hanya booking yang masuk ke dia
-                query = base_query + " AND t.user_id = :user_id"
+                query = base_query + " AND tp.user_id = :user_id"
                 params["user_id"] = user_id
             else:
-                return []  # role tidak valid
-            # lakuan eksekusi query
+                return []
             result = connection.execute(text(query), params).mappings().fetchall()
             bookings = []
             for row in result:
@@ -77,6 +78,7 @@ def get_bookings_by_role(role, user_id):
                     "user_id": row["user_id"],
                     "user_name": row["user_name"],
                     "therapist_id": row["therapist_id"],
+                    "therapist_name": row["therapist_name"],
                     "location": row["location"],
                     "booking_time": str(row["booking_time"]),
                     "status_booking": row["status_booking"],
