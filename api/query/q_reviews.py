@@ -91,11 +91,13 @@ def get_reviews_by_therapist(therapist_id):
                         r.id AS id_review,
                         r.booking_id,
                         r.user_id,
+                        u.name AS user_name,
                         r.therapist_id,
                         r.rating,
                         r.comment,
                         r.created_at
                     FROM reviews r
+                    JOIN users u ON r.user_id = u.id
                     WHERE r.therapist_id = :therapist_id
                       AND r.status = 1
                     ORDER BY r.created_at DESC
