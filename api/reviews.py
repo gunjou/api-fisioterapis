@@ -66,6 +66,22 @@ class ReviewListByTherapistResource(Resource):
             return error_response("Internal server error", 500)
 
 
+@reviews_ns.route('/me')
+class MyDetailResource(Resource):
+    @jwt_required()
+    def get(self):
+        """Detail profil therapist by ID (admin & user)"""
+        id_therapist = get_jwt_identity()
+        try:
+            reviews = get_reviews_by_therapist(id_therapist)
+            if not reviews:
+                return success_response("No reviews found", [], 200)
+            return success_response("Reviews retrieved successfully", reviews, 200)
+        except SQLAlchemyError as e:
+            reviews_ns.logger.error(f"Database error: {str(e)}")
+            return error_response("Internal server error", 500)
+        
+
 @reviews_ns.route('/<int:id_review>')
 class ReviewDetailResource(Resource):
     @jwt_required()
