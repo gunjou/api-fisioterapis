@@ -81,6 +81,22 @@ class TherapistResource(Resource):
             return error_response("Internal server error", 500)
         
 
+@therapists_ns.route('/me')
+class MyDetailResource(Resource):
+    @jwt_required()
+    def get(self):
+        """Detail profil therapist by ID (admin & user)"""
+        id_therapist = get_jwt_identity()
+        try:
+            therapist = get_therapist_by_id(id_therapist)
+            if not therapist:
+                return error_response("Therapist not found", 404)
+            return success_response("Therapist detail fetched successfully", therapist, 200)
+        except SQLAlchemyError as e:
+            therapists_ns.logger.error(f"Database error: {str(e)}")
+            return error_response("Internal server error", 500)
+        
+        
 @therapists_ns.route('/<int:id_therapist>')
 @therapists_ns.param('id_therapist', 'ID user therapist yang ingin diambil')
 class TherapistDetailResource(Resource):
