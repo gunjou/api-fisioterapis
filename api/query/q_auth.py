@@ -165,3 +165,71 @@ def get_user_profile(user_id):
     except SQLAlchemyError as e:
         print(f"Error occurred: {str(e)}")
         return None
+
+def get_my_profile(id_user):
+    engine = get_connection()
+    try:
+        with engine.connect() as connection:
+            # Ambil dulu data user
+            user = connection.execute(
+                text("""
+                    SELECT id, name, email, phone, role, status, created_at, updated_at
+                    FROM users
+                    WHERE id = :id_user AND status = 1
+                    LIMIT 1;
+                """),
+                {"id_user": id_user}
+            ).mappings().fetchone()
+
+            if not user:
+                return None
+
+            # Jika user adalah therapist, tambahkan profilnya
+            if user["role"] == "therapist":
+                profile = connection.execute(
+                    text("""
+                        SELECT id AS profile_id, bio, experience_years, specialization,
+                               average_rating, total_reviews, status_therapist,
+                               working_hours, created_at AS profile_created, updated_at AS profile_updated
+                        FROM therapist_profiles
+                        WHERE user_id = :id_user AND status = 1
+                        LIMIT 1;
+                    """),
+                    {"id_user": id_user}
+                ).mappings().fetchone()
+                return {
+                    "id_user": user["id"],
+                    "name": user["name"],
+                    "email": user["email"],
+                    "phone": user["phone"],
+                    "role": user["role"],
+                    "status": user["status"],
+                    "created_at": str(user["created_at"]),
+                    "updated_at": str(user["updated_at"]),
+                    "therapist_profile": {
+                        "id_profile": profile["profile_id"] if profile else None,
+                        "bio": profile["bio"] if profile else None,
+                        "experience_years": profile["experience_years"] if profile else None,
+                        "specialization": profile["specialization"] if profile else None,
+                        "average_rating": float(profile["average_rating"]) if profile and profile["average_rating"] is not None else 0.0,
+                        "total_reviews": profile["total_reviews"] if profile else 0,
+                        "status_therapist": profile["status_therapist"] if profile else None,
+                        "working_hours": profile["working_hours"] if profile else None,
+                        "created_at": str(profile["profile_created"]) if profile else None,
+                        "updated_at": str(profile["profile_updated"]) if profile else None
+                    } if profile else None
+                }
+            # Jika user biasa (bukan therapist)
+            return {
+                "id_user": user["id"],
+                "name": user["name"],
+                "email": user["email"],
+                "phone": user["phone"],
+                "role": user["role"],
+                "status": user["status"],
+                "created_at": str(user["created_at"]),
+                "updated_at": str(user["updated_at"])
+            }
+    except SQLAlchemyError as e:
+        print(f"Error occurred: {str(e)}")
+        return None

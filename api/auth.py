@@ -4,7 +4,7 @@ from flask_restx import Namespace, Resource, fields
 from sqlalchemy.exc import SQLAlchemyError
 
 from .utils.response import success_response, error_response
-from .query.q_auth import get_login, get_user_profile, register_therapist, register_user
+from .query.q_auth import get_login, get_my_profile, get_user_profile, register_therapist, register_user
 
 auth_ns = Namespace('auth', description='Endpoint Autentikasi (User, Therapist, Admin)')
 
@@ -103,6 +103,22 @@ class ProfileResource(Resource):
             if not profile:
                 return error_response("User not found", 404)
             return success_response("Profile fetched successfully", profile, 200)
+        except SQLAlchemyError as e:
+            auth_ns.logger.error(f"Database error: {str(e)}")
+            return error_response("Internal server error", 500)
+
+
+@auth_ns.route('/me')
+class MeProfileResource(Resource):
+    @jwt_required()
+    def get(self):
+        """Detail profil user yang sedang login (user / therapist / admin)"""
+        user_id = get_jwt_identity()
+        try:
+            result = get_my_profile(user_id)
+            if not result:
+                return error_response("User not found", 404)
+            return success_response("Profile fetched successfully", result, 200)
         except SQLAlchemyError as e:
             auth_ns.logger.error(f"Database error: {str(e)}")
             return error_response("Internal server error", 500)
