@@ -50,10 +50,8 @@ def get_bookings_by_role(role, user_id):
                 FROM bookings b
                 JOIN users u 
                     ON b.user_id = u.id AND u.status = 1
-                JOIN therapist_profiles tp 
-                    ON b.therapist_id = tp.id AND tp.status = 1
                 JOIN users tu 
-                    ON tp.user_id = tu.id AND tu.status = 1
+                    ON b.therapist_id = tu.id AND tu.status = 1
                 LEFT JOIN reviews r 
                     ON r.booking_id = b.id AND r.status = 1
                 WHERE b.status = 1
@@ -68,7 +66,7 @@ def get_bookings_by_role(role, user_id):
                 params["user_id"] = user_id
             elif role == "therapist":
                 # Therapist → hanya booking yang masuk ke dia
-                query = base_query + " AND tp.user_id = :user_id"
+                query = base_query + " AND b.therapist_id = :user_id"
                 params["user_id"] = user_id
             else:
                 return []
