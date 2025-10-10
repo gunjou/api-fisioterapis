@@ -111,7 +111,7 @@ class TherapistDetailResource(Resource):
             # hanya admin atau terapis sendiri yang boleh update
             if claims.get("role") != "admin":
                 therapist = get_therapist_by_id(id_therapist)
-                if not therapist or therapist["user_id"] != user_id:
+                if not therapist or int(therapist["user_id"]) != int(user_id):
                     return error_response("Forbidden: you can only update your own profile", 403)
 
             updated = update_therapist_by_id(id_therapist, payload)
@@ -157,7 +157,8 @@ class TherapistStatusResource(Resource):
             # hanya admin atau terapis sendiri yang boleh update
             if claims.get("role") != "admin":
                 therapist = get_therapist_by_id(id_therapist)
-                if not therapist or therapist["user_id"] != user_id:
+                # print(therapist)
+                if not therapist or int(therapist["id_user"]) != int(user_id):
                     return error_response("Forbidden: you can only update your own status", 403)
 
             updated = update_therapist_status(id_therapist, payload["status_therapist"])
