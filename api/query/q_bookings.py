@@ -45,8 +45,8 @@ def get_bookings_by_role(role, user_id):
         with engine.connect() as connection:
             base_query = """
                 SELECT 
-                    b.id, b.user_id, u.name AS user_name,b.therapist_id, tu.name AS therapist_name,
-                    b.location, b.booking_time, b.status_booking,b.notes, b.status, b.created_at, b.updated_at
+                    b.id, b.user_id, u.name AS user_name, b.therapist_id, tu.name AS therapist_name, b.location,
+                    b.booking_time, b.status_booking, b.notes, b.status, b.created_at, b.updated_at, r.id AS id_review
                 FROM bookings b
                 JOIN users u 
                     ON b.user_id = u.id AND u.status = 1
@@ -54,11 +54,13 @@ def get_bookings_by_role(role, user_id):
                     ON b.therapist_id = tp.id AND tp.status = 1
                 JOIN users tu 
                     ON tp.user_id = tu.id AND tu.status = 1
+                LEFT JOIN reviews r 
+                    ON r.booking_id = b.id AND r.status = 1
                 WHERE b.status = 1
             """
             params = {}
             if role == "admin":
-                # Admin → lihat semua
+                # Admin → lihat semua booking
                 query = base_query
             elif role == "user":
                 # User → hanya booking miliknya
@@ -76,6 +78,7 @@ def get_bookings_by_role(role, user_id):
                 bookings.append({
                     "id_booking": row["id"],
                     "user_id": row["user_id"],
+                    "id_review": row["id_review"],  # ✅ tambahkan ID review
                     "user_name": row["user_name"],
                     "therapist_id": row["therapist_id"],
                     "therapist_name": row["therapist_name"],
@@ -91,6 +94,7 @@ def get_bookings_by_role(role, user_id):
     except SQLAlchemyError as e:
         print(f"Error occurred: {str(e)}")
         return []
+
 
 def get_booking_by_id_and_role(id_booking, role, user_id):
     engine = get_connection()
