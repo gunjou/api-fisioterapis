@@ -100,15 +100,16 @@ def get_booking_by_id_and_role(id_booking, role, user_id):
     engine = get_connection()
     try:
         with engine.connect() as connection:
+            print(f"Fetching booking with ID {id_booking} for role {role} and user_id {user_id}")
             base_query = """
                 SELECT 
                     b.id, b.user_id, u.name AS user_name,
-                    b.therapist_id, t.user_id AS therapist_user_id,
+                    b.therapist_id, t.id AS therapist_user_id,
                     b.location, b.booking_time, b.status_booking,
                     b.notes, b.status, b.created_at, b.updated_at
                 FROM bookings b
                 JOIN users u ON b.user_id = u.id AND u.status = 1
-                JOIN therapist_profiles t ON b.therapist_id = t.id AND t.status = 1
+                JOIN users t ON b.user_id = t.id AND t.status = 1
                 WHERE b.status = 1 AND b.id = :id_booking
             """
             params = {"id_booking": id_booking}
@@ -119,7 +120,7 @@ def get_booking_by_id_and_role(id_booking, role, user_id):
                 query = base_query + " AND b.user_id = :user_id"
                 params["user_id"] = user_id
             elif role == "therapist":
-                query = base_query + " AND t.user_id = :user_id"
+                query = base_query + " AND b.therapist_id = :user_id"
                 params["user_id"] = user_id
             else:
                 return None
@@ -200,9 +201,9 @@ def update_booking_status(id_booking, role, user_id, new_status):
             # Cek booking
             row = connection.execute(
                 text("""
-                    SELECT b.id, b.user_id, t.user_id AS therapist_user_id
+                    SELECT b.id, b.user_id, b.therapist_id AS therapist_user_id
                     FROM bookings b
-                    JOIN therapist_profiles t ON b.therapist_id = t.id AND t.status = 1
+                    JOIN users t ON b.therapist_id = t.id AND t.status = 1
                     WHERE b.id = :id_booking AND b.status = 1
                 """),
                 {"id_booking": id_booking}
@@ -212,7 +213,9 @@ def update_booking_status(id_booking, role, user_id, new_status):
             # Role-based access:
             # - Therapist hanya bisa update booking miliknya
             # - Admin bisa update semua
-            if role == "therapist" and row["therapist_user_id"] != user_id:
+            # print(f"Booking row: {row}")
+            # print(f"Role: {role}, User ID: {user_id}, Therapist User ID: {row['therapist_user_id']}")
+            if role == "therapist" and int(row["therapist_user_id"]) != int(user_id):
                 return None
             if role == "user":
                 return None  # user tidak boleh ubah status booking
