@@ -198,7 +198,7 @@ def get_my_profile(id_user):
                     {"id_user": id_user}
                 ).mappings().fetchone()
                 return {
-                    "id_user": user["id"],
+                    "therapist_id": user["id"],
                     "name": user["name"],
                     "email": user["email"],
                     "phone": user["phone"],
