@@ -12,13 +12,13 @@ def get_therapists(status_therapist=None):
         with engine.connect() as connection:
             query = """
                 SELECT 
-                    tp.id, tp.user_id, u.name, u.email, u.phone,
+                    u.id AS id_therapist, u.name, u.email, u.phone,
                     tp.bio, tp.experience_years, tp.specialization,
                     tp.average_rating, tp.total_reviews,
                     tp.status_therapist, tp.working_hours,
                     tp.created_at, tp.updated_at
                 FROM therapist_profiles tp
-                JOIN users u ON tp.user_id = u.id
+                JOIN users u ON tp.user_id = u.id AND u.role = 'therapist'
                 WHERE tp.status = 1 AND u.status = 1
             """
             params = {}
@@ -33,8 +33,7 @@ def get_therapists(status_therapist=None):
 
             return [
                 {
-                    "id_therapist": row["id"],
-                    "user_id": row["user_id"],
+                    "id_therapist": row["id_therapist"],
                     "name": row["name"],
                     "email": row["email"],
                     "phone": row["phone"],
@@ -205,8 +204,7 @@ def update_therapist_by_id(id_therapist, payload):
             updated = connection.execute(text(query), params).mappings().fetchone()
             if updated:
                 return {
-                    "id_therapist": updated["id"],
-                    "user_id": updated["user_id"],
+                    "id_therapist": updated["user_id"],
                     "bio": updated["bio"],
                     "experience_years": updated["experience_years"],
                     "specialization": updated["specialization"],
@@ -256,13 +254,13 @@ def soft_delete_therapist_by_id(id_therapist):
                     UPDATE users
                     SET status = 0
                     WHERE id = :user_id
+                    AND role = 'therapist'
                 """),
                 {"user_id": therapist["user_id"]}
             )
             if result:
                 return {
-                    "id_therapist": result["id"],
-                    "user_id": result["user_id"],
+                    "id_therapist": result["user_id"],
                     "bio": result["bio"],
                     "experience_years": result["experience_years"],
                     "specialization": result["specialization"],
@@ -296,8 +294,7 @@ def update_therapist_status(id_therapist, status_therapist):
             ).mappings().fetchone()
             if result:
                 return {
-                    "id_therapist": result["id"],
-                    "user_id": result["user_id"],
+                    "id_therapist": result["user_id"],
                     "bio": result["bio"],
                     "experience_years": result["experience_years"],
                     "specialization": result["specialization"],

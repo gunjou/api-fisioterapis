@@ -149,9 +149,9 @@ def soft_delete_booking_by_id(id_booking, role, user_id):
         with engine.begin() as connection:
             # Cek dulu apakah booking ada dan sesuai role
             base_query = """
-                SELECT b.id, b.user_id, t.user_id AS therapist_user_id
+                SELECT b.id, b.user_id, u.id AS therapist_user_id
                 FROM bookings b
-                JOIN therapist_profiles t ON b.therapist_id = t.id AND t.status = 1
+                JOIN users u ON b.therapist_id = u.id AND u.status = 1 AND u.role = 'therapist'
                 WHERE b.id = :id_booking AND b.status = 1
             """
             row = connection.execute(text(base_query), {"id_booking": id_booking}).mappings().fetchone()
@@ -201,7 +201,7 @@ def update_booking_status(id_booking, role, user_id, new_status):
                 text("""
                     SELECT b.id, b.user_id, b.therapist_id AS therapist_user_id
                     FROM bookings b
-                    JOIN users t ON b.therapist_id = t.id AND t.status = 1
+                    JOIN users t ON b.therapist_id = t.id AND t.role = 'therapist' AND t.status = 1
                     WHERE b.id = :id_booking AND b.status = 1
                 """),
                 {"id_booking": id_booking}
